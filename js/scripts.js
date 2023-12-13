@@ -417,8 +417,6 @@ function animate() {
         }
     }
 
-    prevTime = currentTime; // Update time for the next frame
-
 }
 
 function onWindowResize() {
