@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+  	<link rel="icon" href="/src/chan.png">
+    <title>ThreeJS Cube</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+        }
+        canvas {
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <script src="/js/scripts.js" type="module"></script>
+    <script>
+        document.addEventListener("visibilitychange", function() {
+        if (document.visibilityState === 'visible') {
+            location.reload();
+        }
+        });
+    </script>
+</body>
+</html>
