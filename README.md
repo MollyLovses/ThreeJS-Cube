@@ -4,13 +4,18 @@ This project is a JavaScript program that utilizes the Three.js library to creat
 # Description
 The code initializes a scene using Three.js, setting up a 3D environment with a cube and multiple square planes arranged in a specific layout. It utilizes various functions to create and position these geometric shapes, applying shader materials to achieve gradient color effects.
 
+
+https://github.com/MollyLovses/ThreeJS-Cube/assets/96005820/526b0253-bdd5-4d4a-a461-9103e621dbd5
+
+
 # Features
 Generates a 3D cube and square planes using Three.js.
 Applies shader materials to create gradient color effects.
 Implements animations and transformations on the shapes within the scene.
 Utilizes an EffectComposer with RenderPass and UnrealBloomPass for post-processing effects.
 
-# Installation
+# Installation!
+
 Ensure you have a compatible web browser and an internet connection to access the necessary dependencies from the provided URLs. To run the code locally:
 
 1. Clone this repository to your local machine.
