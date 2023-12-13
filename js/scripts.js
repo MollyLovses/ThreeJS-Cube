@@ -15,7 +15,7 @@ let camera, renderer, controls;
 let square1, square2, square3; // Top Squares
 let square4, square5, square6; // Bottom Squares
 let squares;
-const frustumSize = 5;
+const frustumSize = 7;
 let shaderMaterialTop, shaderMaterialBot, material;
 const cubeColor = new THREE.Color(0.05, 1.5, 0.15);
 
