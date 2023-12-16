@@ -1,5 +1,6 @@
 import * as THREE from 'https://unpkg.com/three@0.126.1/build/three.module.js';
 import { OrbitControls } from 'https://unpkg.com/three@0.126.1/examples/jsm/controls/OrbitControls.js';
+import { GUI } from 'https://unpkg.com/three@0.126.1/examples/jsm/libs/dat.gui.module.js';
 
 import { EffectComposer } from 'https://unpkg.com/three@0.126.1/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'https://unpkg.com/three@0.126.1/examples/jsm/postprocessing/RenderPass.js';
@@ -17,7 +18,6 @@ let square4, square5, square6; // Bottom Squares
 let squares;
 const frustumSize = 7;
 let shaderMaterialTop, shaderMaterialBot, material;
-const cubeColor = new THREE.Color(0.05, 1.5, 0.15);
 
 let cube, group;
 
@@ -30,11 +30,22 @@ let animationPhase = 0;
 let elapsedTime = 0;
 let phaseDuration = 750;
 
-let clock = new THREE.Clock(false);
+let clock = new THREE.Clock(false); // Clock for animation
 clock.start();
 
 let composer, bloomPass;
-let bloomStrength = 0.5;
+
+const params = {
+    threshold: 0,
+    strength: 0.5,
+    radius: 0.05
+};
+
+let cubeColor = new THREE.Color(0.2, 1.0, 0,3);         // Green
+let topFrontColor = new THREE.Color(1.5, 0.2, 1.5);     // Purple (Pink)
+let botFrontColor = new THREE.Color(0.0, 0.2, 1.5);     // Blue
+let topBackColor = new THREE.Color(0.55, 1.0, 1.5);     // Aqua color
+let botBackColor = new THREE.Color(0.75, 0.75, 1.5);    // Grey color
 
 init();
 animate();
@@ -91,17 +102,17 @@ function init() {
     // Creating a cube by positioning plane meshes for each side //
     delta = cubeHeight/2 - cubeWidth/2;
     const cubePlaneMeshes = [
-        createPlane(0, -delta, cubeHeight/2, cubeHeight, cubeWidth, 0, 0, 0),             // Front
-        createPlane(0, delta, delta, cubeHeight, cubeWidth, -Math.PI/4, 0, 0),        // Front-Top
-        createPlane(-delta, 0, cubeHeight/2, cubeHeight, cubeWidth, 0, 0, Math.PI/2),     // Front
+        createPlane(0, -delta, cubeHeight/2, cubeHeight, cubeWidth, 0, 0, 0),           // Front
+        createPlane(0, delta, delta, cubeHeight, cubeWidth, -Math.PI/4, 0, 0),          // Front-Top
+        createPlane(-delta, 0, cubeHeight/2, cubeHeight, cubeWidth, 0, 0, Math.PI/2),   // Front
 
-        createPlane(0, cubeHeight/2, -delta, cubeHeight, cubeWidth, -Math.PI/2, 0, 0),             // Top
-        createPlane(delta, delta, 0, cubeHeight, cubeWidth, -Math.PI/2, Math.PI/4, Math.PI/2), // Top-Right
-        createPlane(-delta, cubeHeight/2, 0, cubeHeight, cubeWidth, -Math.PI/2, 0, Math.PI/2),     // Top
+        createPlane(0, cubeHeight/2, -delta, cubeHeight, cubeWidth, -Math.PI/2, 0, 0),          // Top
+        createPlane(delta, delta, 0, cubeHeight, cubeWidth, -Math.PI/2, Math.PI/4, Math.PI/2),  // Top-Right
+        createPlane(-delta, cubeHeight/2, 0, cubeHeight, cubeWidth, -Math.PI/2, 0, Math.PI/2),  // Top
 
-        createPlane(cubeHeight/2, -delta, 0, cubeHeight, cubeWidth, 0, Math.PI/2, 0),          // Right
-        createPlane(delta, 0, delta, cubeHeight, cubeWidth, 0, Math.PI/4, Math.PI/2),      // Right-Front
-        createPlane(cubeHeight/2, 0, -delta, cubeHeight, cubeWidth, 0, Math.PI/2, Math.PI/2)   // Right
+        createPlane(cubeHeight/2, -delta, 0, cubeHeight, cubeWidth, 0, Math.PI/2, 0),           // Right
+        createPlane(delta, 0, delta, cubeHeight, cubeWidth, 0, Math.PI/4, Math.PI/2),           // Right-Front
+        createPlane(cubeHeight/2, 0, -delta, cubeHeight, cubeWidth, 0, Math.PI/2, Math.PI/2)    // Right
     ];
 
     cube = createMesh(cube, cubePlaneMeshes);
@@ -167,14 +178,14 @@ function init() {
     const fragmentShaderPurple = `
     varying vec3 vNormal;
     varying vec3 vPosition;
-    uniform vec3 purpleColor;  // Purple color
-    uniform vec3 blueColor;  // Blue color
+    uniform vec3 topFrontColor;  // Purple color
+    uniform vec3 botFrontColor;  // Blue color
 
     void main() {
 
-    vec3 gradientColor = mix(purpleColor, blueColor, smoothstep(-1.0, -2.0, vPosition.x));
-    gradientColor = mix(gradientColor, blueColor, smoothstep(1.0, -1.0, vPosition.y));
-    gradientColor = mix(gradientColor, blueColor, smoothstep(0.0, -2.5, vPosition.z));
+    vec3 gradientColor = mix(topFrontColor, botFrontColor, smoothstep(-1.0, -2.0, vPosition.x));
+    gradientColor = mix(gradientColor, botFrontColor, smoothstep(1.0, -1.0, vPosition.y));
+    gradientColor = mix(gradientColor, botFrontColor, smoothstep(0.0, -2.5, vPosition.z));
 
     gl_FragColor = vec4(gradientColor, 1.0);
     }
@@ -184,24 +195,24 @@ function init() {
     const fragmentShaderGrey = `
     varying vec3 vNormal;
     varying vec3 vPosition;
-    uniform vec3 aquaColor;  // Aqua color
-    uniform vec3 greyColor;  // Grey color
+    uniform vec3 topBackColor;  // Aqua color
+    uniform vec3 botBackColor;  // Grey color
 
     void main() {
 
-    vec3 gradientColor = mix(aquaColor, greyColor, smoothstep(-1.0, -2.0, vPosition.x));
-    gradientColor = mix(gradientColor, greyColor, smoothstep(1.0, -1.0, vPosition.y));
-    gradientColor = mix(gradientColor, greyColor, smoothstep(0.0, -4.0, vPosition.z));
+    vec3 gradientColor = mix(topBackColor, botBackColor, smoothstep(-1.0, -2.0, vPosition.x));
+    gradientColor = mix(gradientColor, botBackColor, smoothstep(1.0, -1.0, vPosition.y));
+    gradientColor = mix(gradientColor, botBackColor, smoothstep(0.0, -4.0, vPosition.z));
 
     gl_FragColor = vec4(gradientColor, 1.0);
     }
     `;
 
     const uniforms = {
-        purpleColor: { value: new THREE.Vector3(1.5, 0.2, 1.5) }, // Purple color
-        blueColor: { value: new THREE.Vector3(0.0, 0.2, 1.5) }, // Blue color
-        aquaColor: { value: new THREE.Vector3(0.75, 0.75, 1.5) }, // Aqua color
-        greyColor: { value: new THREE.Vector3(0.75, 0.75, 1.5) } // Grey color
+        topFrontColor: { value: new THREE.Vector3(topFrontColor.r, topFrontColor.g, topFrontColor.b) }, // Purple color
+        botFrontColor: { value: new THREE.Vector3(botFrontColor.r, botFrontColor.g, botFrontColor.b) }, // Blue color
+        topBackColor: { value: new THREE.Vector3(topBackColor.r, topBackColor.g, topBackColor.b) }, // Aqua color
+        botBackColor: { value: new THREE.Vector3(botBackColor.r, botBackColor.g, botBackColor.b) } // Grey color
     };
 
     shaderMaterialTop = new THREE.ShaderMaterial({
@@ -239,17 +250,65 @@ function init() {
     composer = new EffectComposer(renderer);
     const renderPass = new RenderPass(scene, camera);
     composer.addPass(renderPass);
+
     // Add a BloomPass with increased effect
     bloomPass = new UnrealBloomPass(
     new THREE.Vector2(window.innerWidth, window.innerHeight),
-        bloomStrength, // Strength
-        0.05, // Radius
-        0.0 // Threshold
+        params.strength, // Strength
+        params.radius, // Radius
+        params.threshold // Threshold
     );
     composer.addPass(bloomPass);
 
+    const gui = new GUI();
+    
+    const bloomFolder = gui.addFolder('Bloom');
 
-  
+    bloomFolder.add(params, 'threshold', 0.0, 1.0).step(0.01).onChange(function(value){
+        bloomPass.threshold = Number(value);
+    });
+
+    bloomFolder.add(params, 'strength', 0.0, 3.0).step(0.01).onChange(function(value){
+        bloomPass.strength = Number(value);
+    });
+
+    bloomFolder.add(params, 'radius', 0.0, 1.0).step(0.01).onChange(function(value){
+        bloomPass.radius = Number(value);
+    });
+
+    const materialsFolder = gui.addFolder('Materials');
+
+    var conf = { 
+        CubeColor : `#${cubeColor.getHexString()}`,
+        TopSquares : `#${topFrontColor.getHexString()}`,
+        BotSquares : `#${botFrontColor.getHexString()}`
+    };
+
+    var guiControlador = materialsFolder.addColor( conf, 'CubeColor');
+    guiControlador.onChange( function( colorValue  )
+    {
+        let colorObject = new THREE.Color( colorValue ) ;
+        material.color = colorObject;
+        cubeColor = colorObject;
+    });
+
+    guiControlador = materialsFolder.addColor( conf, 'TopSquares');
+    guiControlador.onChange( function( colorValue  )
+    {
+        let colorObject = new THREE.Color( colorValue ) ;
+        topFrontColor = colorObject;
+        shaderMaterialTop.uniforms.topFrontColor.value = new THREE.Vector3(colorObject.r, colorObject.g, colorObject.b);
+    });
+
+    guiControlador = materialsFolder.addColor( conf, 'BotSquares');
+    guiControlador.onChange( function( colorValue  )
+    {
+        let colorObject = new THREE.Color( colorValue ) ;
+        botFrontColor = colorObject;
+        shaderMaterialTop.uniforms.botFrontColor.value = new THREE.Vector3(colorObject.r, colorObject.g, colorObject.b);
+    });
+
+
     // Additional Functions //
     window.addEventListener( 'resize', onWindowResize );
     onWindowResize();
@@ -328,67 +387,73 @@ function animate() {
         case 6: // Material Effects
             phaseDuration = 5000;
             if(bloomPass.strength > 0){
-                if(elapsedTime < 100) bloomPass.strength -= bloomStrength/50;
+                if(elapsedTime < 100) bloomPass.strength -= params.strength/50;
                 else if(elapsedTime < 250) {
-                    bloomPass.strength += bloomStrength/100;
-                    if(shaderMaterialTop.uniforms.purpleColor.value.x > 0) shaderMaterialTop.uniforms.purpleColor.value.x -= 0.5;
+                    bloomPass.strength += params.strength/100;
+                    if(shaderMaterialTop.uniforms.topFrontColor.value.x > 0) shaderMaterialTop.uniforms.topFrontColor.value.x -= 0.5;
                 }
                 else if(elapsedTime < 500) {
-                    bloomPass.strength -= bloomStrength/50;
-                    if(shaderMaterialTop.uniforms.purpleColor.value.y < 2) shaderMaterialTop.uniforms.purpleColor.value.y += 0.35;
-                    if(shaderMaterialTop.uniforms.blueColor.value.x < 2) shaderMaterialTop.uniforms.blueColor.value.x += 0.25;
+                    bloomPass.strength -= params.strength/50;
+                    if(shaderMaterialTop.uniforms.topFrontColor.value.y < 2) shaderMaterialTop.uniforms.topFrontColor.value.y += 0.35;
+                    if(shaderMaterialTop.uniforms.botFrontColor.value.x < 2) shaderMaterialTop.uniforms.botFrontColor.value.x += 0.25;
                 }
                 else if(elapsedTime < 750) {
-                    bloomPass.strength += bloomStrength/100;
-                    if(shaderMaterialTop.uniforms.purpleColor.value.z > 0) shaderMaterialTop.uniforms.purpleColor.value.z -= 0.25;
-                    if(shaderMaterialTop.uniforms.blueColor.value.x > 0.0) shaderMaterialTop.uniforms.blueColor.value.x -= 0.2;
+                    bloomPass.strength += params.strength/100;
+                    if(shaderMaterialTop.uniforms.topFrontColor.value.z > 0) shaderMaterialTop.uniforms.topFrontColor.value.z -= 0.25;
+                    if(shaderMaterialTop.uniforms.botFrontColor.value.x > 0.0) shaderMaterialTop.uniforms.botFrontColor.value.x -= 0.2;
                 }
                 else if(elapsedTime < 1000) {
-                    bloomPass.strength -= bloomStrength/50;
-                    if(shaderMaterialTop.uniforms.purpleColor.value.x < 2) shaderMaterialTop.uniforms.purpleColor.value.x += 0.15;
-                    if(shaderMaterialTop.uniforms.blueColor.value.z < 2) shaderMaterialTop.uniforms.blueColor.value.z += 0.05;
+                    bloomPass.strength -= params.strength/50;
+                    if(shaderMaterialTop.uniforms.topFrontColor.value.x < 2) shaderMaterialTop.uniforms.topFrontColor.value.x += 0.15;
+                    if(shaderMaterialTop.uniforms.botFrontColor.value.z < 2) shaderMaterialTop.uniforms.botFrontColor.value.z += 0.05;
                 }
                 else if(elapsedTime < 1250) {
-                    bloomPass.strength += bloomStrength/100;
-                    if(shaderMaterialTop.uniforms.purpleColor.value.x > 0) shaderMaterialTop.uniforms.purpleColor.value.x -= 0.15;
-                    if(shaderMaterialTop.uniforms.purpleColor.value.y > 0) shaderMaterialTop.uniforms.purpleColor.value.y -= 0.15;
-                    if(shaderMaterialTop.uniforms.blueColor.value.z > 0.0) shaderMaterialTop.uniforms.blueColor.value.z -= 0.2;
+                    bloomPass.strength += params.strength/100;
+                    if(shaderMaterialTop.uniforms.topFrontColor.value.x > 0) shaderMaterialTop.uniforms.topFrontColor.value.x -= 0.15;
+                    if(shaderMaterialTop.uniforms.topFrontColor.value.y > 0) shaderMaterialTop.uniforms.topFrontColor.value.y -= 0.15;
+                    if(shaderMaterialTop.uniforms.botFrontColor.value.z > 0.0) shaderMaterialTop.uniforms.botFrontColor.value.z -= 0.2;
                 }
                 else if(elapsedTime < 1500) {
-                    bloomPass.strength -= bloomStrength/50;
-                    if(shaderMaterialTop.uniforms.purpleColor.value.z < 1.5) shaderMaterialTop.uniforms.purpleColor.value.z += 0.125;
-                    if(shaderMaterialTop.uniforms.blueColor.value.x < 1.5) shaderMaterialTop.uniforms.blueColor.value.x += 0.25;
+                    bloomPass.strength -= params.strength/50;
+                    if(shaderMaterialTop.uniforms.topFrontColor.value.z < 1.5) shaderMaterialTop.uniforms.topFrontColor.value.z += 0.125;
+                    if(shaderMaterialTop.uniforms.botFrontColor.value.x < 1.5) shaderMaterialTop.uniforms.botFrontColor.value.x += 0.25;
                 }
                 else if(elapsedTime < 1750) {
-                    bloomPass.strength += bloomStrength/100;
-                    if(shaderMaterialTop.uniforms.purpleColor.value.x > 0.0) shaderMaterialTop.uniforms.purpleColor.value.x -= 0.125;
-                    if(shaderMaterialTop.uniforms.blueColor.value.x > 0.0) shaderMaterialTop.uniforms.blueColor.value.x -= 0.2;
+                    bloomPass.strength += params.strength/100;
+                    if(shaderMaterialTop.uniforms.topFrontColor.value.x > 0.0) shaderMaterialTop.uniforms.topFrontColor.value.x -= 0.125;
+                    if(shaderMaterialTop.uniforms.botFrontColor.value.x > 0.0) shaderMaterialTop.uniforms.botFrontColor.value.x -= 0.2;
                 }
                 else if(elapsedTime < 5000) {
-                    bloomPass.strength -= bloomStrength/50;
+                    bloomPass.strength -= params.strength/50;
                 }
             }
-            
+
             if(elapsedTime < 2500){
-                if(shaderMaterialTop.uniforms.purpleColor.value.y > 0.0) shaderMaterialTop.uniforms.purpleColor.value.y -= 0.05;
-                if(shaderMaterialTop.uniforms.purpleColor.value.z < 2) shaderMaterialTop.uniforms.purpleColor.value.z += 0.05;
-                if(shaderMaterialTop.uniforms.purpleColor.value.x < 2) shaderMaterialTop.uniforms.purpleColor.value.x += 0.05;
-                if(shaderMaterialTop.uniforms.blueColor.value.y < 1.5) shaderMaterialTop.uniforms.blueColor.value.y += 0.05;
-                if(shaderMaterialTop.uniforms.blueColor.value.x < 1.5) shaderMaterialTop.uniforms.blueColor.value.x += 0.05;
-                if(shaderMaterialTop.uniforms.blueColor.value.z < 2.0) shaderMaterialTop.uniforms.blueColor.value.z += 0.05;
+                if(shaderMaterialTop.uniforms.topFrontColor.value.y > 0.0) shaderMaterialTop.uniforms.topFrontColor.value.y -= 0.05;
+                if(shaderMaterialTop.uniforms.topFrontColor.value.z < 2.0) shaderMaterialTop.uniforms.topFrontColor.value.z += 0.05;
+                if(shaderMaterialTop.uniforms.topFrontColor.value.x < 2.0) shaderMaterialTop.uniforms.topFrontColor.value.x += 0.05;
+                if(shaderMaterialTop.uniforms.botFrontColor.value.y < 1.5) shaderMaterialTop.uniforms.botFrontColor.value.y += 0.05;
+                if(shaderMaterialTop.uniforms.botFrontColor.value.x < 1.5) shaderMaterialTop.uniforms.botFrontColor.value.x += 0.05;
+                if(shaderMaterialTop.uniforms.botFrontColor.value.z < 2.0) shaderMaterialTop.uniforms.botFrontColor.value.z += 0.05;
             }else if(elapsedTime < 3500){
-                if(shaderMaterialTop.uniforms.purpleColor.value.y < 1.5) shaderMaterialTop.uniforms.purpleColor.value.y += 0.05;
-                if(shaderMaterialTop.uniforms.blueColor.value.y > 0.0) shaderMaterialTop.uniforms.blueColor.value.y -= 0.05;
-                if(shaderMaterialTop.uniforms.blueColor.value.x < 1.5) shaderMaterialTop.uniforms.blueColor.value.x += 0.05;
-                if(shaderMaterialTop.uniforms.blueColor.value.z < 2.0) shaderMaterialTop.uniforms.blueColor.value.z += 0.05;
-                //+if(shaderMaterialTop.uniforms.blueColor.value.y < 1.5) shaderMaterialTop.uniforms.blueColor.value.y += 0.05;
+                if(shaderMaterialTop.uniforms.topFrontColor.value.y < 1.5) shaderMaterialTop.uniforms.topFrontColor.value.y += 0.05;
+                if(shaderMaterialTop.uniforms.botFrontColor.value.y > 0.0) shaderMaterialTop.uniforms.botFrontColor.value.y -= 0.05;
+                if(shaderMaterialTop.uniforms.botFrontColor.value.x < 1.5) shaderMaterialTop.uniforms.botFrontColor.value.x += 0.05;
+                if(shaderMaterialTop.uniforms.botFrontColor.value.z < 2.0) shaderMaterialTop.uniforms.botFrontColor.value.z += 0.05;
             }else if(elapsedTime < 5000){
-                if(shaderMaterialTop.uniforms.purpleColor.value.x < 1.5) shaderMaterialTop.uniforms.purpleColor.value.x += 0.05;
-                if(shaderMaterialTop.uniforms.purpleColor.value.y > 0.2) shaderMaterialTop.uniforms.purpleColor.value.y -= 0.05;
-                if(shaderMaterialTop.uniforms.purpleColor.value.z < 2.0) shaderMaterialTop.uniforms.purpleColor.value.z += 0.05;
-                if(shaderMaterialTop.uniforms.blueColor.value.x > 0.0) shaderMaterialTop.uniforms.blueColor.value.x -= 0.05;
-                if(shaderMaterialTop.uniforms.blueColor.value.y < 0.2) shaderMaterialTop.uniforms.blueColor.value.y += 0.05;
-                if(shaderMaterialTop.uniforms.blueColor.value.z < 2.0) shaderMaterialTop.uniforms.blueColor.value.z += 0.05;
+                if(shaderMaterialTop.uniforms.topFrontColor.value.x < topFrontColor.r) shaderMaterialTop.uniforms.topFrontColor.value.x += 0.025;
+                else shaderMaterialTop.uniforms.topFrontColor.value.x -= 0.025;
+                if(shaderMaterialTop.uniforms.topFrontColor.value.y < topFrontColor.g) shaderMaterialTop.uniforms.topFrontColor.value.y += 0.025;
+                else shaderMaterialTop.uniforms.topFrontColor.value.y -= 0.025;
+                if(shaderMaterialTop.uniforms.topFrontColor.value.z < topFrontColor.b) shaderMaterialTop.uniforms.topFrontColor.value.z += 0.025;
+                else shaderMaterialTop.uniforms.topFrontColor.value.z -= 0.025;
+
+                if(shaderMaterialTop.uniforms.botFrontColor.value.x < botFrontColor.r) shaderMaterialTop.uniforms.botFrontColor.value.x += 0.025;
+                else shaderMaterialTop.uniforms.botFrontColor.value.x -= 0.025;
+                if(shaderMaterialTop.uniforms.botFrontColor.value.y < botFrontColor.g) shaderMaterialTop.uniforms.botFrontColor.value.y += 0.025;
+                else shaderMaterialTop.uniforms.botFrontColor.value.y -= 0.025;
+                if(shaderMaterialTop.uniforms.botFrontColor.value.z < botFrontColor.b) shaderMaterialTop.uniforms.botFrontColor.value.z += 0.025;
+                else shaderMaterialTop.uniforms.botFrontColor.value.z -= 0.025;
             }
 
             break;
@@ -400,7 +465,7 @@ function animate() {
             if (square1.scale.x < 1) changeOutFacesScale(0.00275, 250);
             else setOutFacesScale(1);
             
-            if(bloomPass.strength < bloomStrength) bloomPass.strength += 0.025;
+            if(bloomPass.strength < params.strength) bloomPass.strength += 0.025;
             break;
         default:
             break;
@@ -410,8 +475,8 @@ function animate() {
         elapsedTime = 0; // Reset elapsed time
         if (animationPhase < 7) {
             animationPhase++; // Move to the next phase
-            if(animationPhase == 6) material.color.set(0x000000); 
-            else if(animationPhase == 7) material.color.set(cubeColor);
+            if(animationPhase == 6) cube.visible = false; 
+            else if(animationPhase == 7) cube.visible = true; 
         } else {
             animationPhase = 0; // Loop back to the first phase after completing all phases
         }
