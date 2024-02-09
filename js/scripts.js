@@ -1,3 +1,12 @@
+/*=========================================================================================
+	Item Name: ThreeJS Cube
+    Module: scripts.js
+	Version: 1.0
+	Author: Sergey Patokin
+	Author URL: https://sergeyforever.online/
+===========================================================================================*/
+
+
 import * as THREE from 'https://unpkg.com/three@0.126.1/build/three.module.js';
 import { OrbitControls } from 'https://unpkg.com/three@0.126.1/examples/jsm/controls/OrbitControls.js';
 import { GUI } from 'https://unpkg.com/three@0.126.1/examples/jsm/libs/dat.gui.module.js';
