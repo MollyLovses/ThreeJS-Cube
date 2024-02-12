@@ -1,4 +1,4 @@
-# ThreeJS-Cube
+# ThreeJS Cube Animation
 This project is a JavaScript program that utilizes the Three.js library to create a 3D animation with geometric shapes. It generates a 3D cube and several square planes in a dynamic environment with shader effects.
 
 # Description
