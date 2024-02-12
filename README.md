@@ -25,4 +25,5 @@ Ensure you have a compatible web browser and an internet connection to access th
 5. Ensure an active internet connection to load dependencies via URLs.
 
 # Usage
-You can experiment with this code by modifying parameters such as cube size, square dimensions, shader colors, and animation phases. Understand the function of each section to create and manipulate 3D shapes using Three.js.
+1. Start the development server: npx vite
+2. Open your web browser and navigate to http://localhost:5173 to access the project.
