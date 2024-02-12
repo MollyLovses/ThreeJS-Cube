@@ -8,9 +8,6 @@ The code initializes a scene using Three.js, setting up a 3D environment with a 
 https://github.com/MollyLovses/ThreeJS-Cube/assets/96005820/526b0253-bdd5-4d4a-a461-9103e621dbd5
 
 
-# Link
-https://sergeyforever.online/animated-cube/
-
 # Features
 Generates a 3D cube and square planes using Three.js.
 Applies shader materials to create gradient color effects.
@@ -30,3 +27,6 @@ Ensure you have a compatible web browser and an internet connection to access th
 # Usage
 1. Start the development server: npx vite
 2. Open your web browser and navigate to http://localhost:5173 to access the project.
+
+# Link
+https://sergeyforever.online/animated-cube/
