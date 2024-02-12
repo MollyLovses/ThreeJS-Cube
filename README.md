@@ -26,9 +26,3 @@ Ensure you have a compatible web browser and an internet connection to access th
 
 # Usage
 You can experiment with this code by modifying parameters such as cube size, square dimensions, shader colors, and animation phases. Understand the function of each section to create and manipulate 3D shapes using Three.js.
-
-# Contributing
-Contributions to enhance or extend the functionality of this project are welcome. Feel free to fork the repository, make changes, and create a pull request with your improvements.
-
-# License
-Unlicense
